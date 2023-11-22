@@ -1,0 +1,24 @@
+body {
+ margin: 0;
+}
+
+.drawer-desktop {
+ display: none;
+}
+
+@media (min-width: 992px) {
+  .drawer-desktop {
+   display: block;
+  }
+
+  .top-app-bar {
+   width: calc(100% - 240px);
+   margin-left: 240px;
+  }
+
+  .main-content {
+   width: calc(100% - 300px);
+   margin-left: 270px;
+   margin-right: 20px;
+  }
+}

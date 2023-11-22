@@ -1,0 +1,409 @@
+#
+# CSE183 Assignment 8 Backend
+#
+
+openapi: '3.0.3'
+
+info:
+  description: CSE183 Assignment 8 Backend
+  version: 0.1.0
+  title: CSE183 Assignment 8 Backend
+
+servers:
+  - url: http://localhost:3010/v0
+
+paths:
+  /dummy:
+    get:
+      description: Dummy Endpoint
+      responses:
+        200:
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DummyResponse'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /listings:
+    get:
+      parameters:
+      - in: query
+        name: keyword
+        description: keyword in description or title 
+        required: false
+        schema: 
+          type: string
+      description: return all listings
+      responses:
+        200:
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingResponse'
+        404:
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      security:
+        - bearerAuth: []  
+      description: creates a new listing
+      requestBody:
+        description: Application to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/newListing'
+      responses:
+        201:
+          description: Application Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/fullListingFoo'
+        400:
+          description: unexpected properties
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /listing/{id}:
+    get:
+      description: get listing by id
+      operationId: getById
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: string
+            format: uuid
+          required: true
+          description: id of listing
+      responses:
+        200:
+          description: Listing response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/fullListing'
+        404:
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      security:
+        - bearerAuth: []
+      description: posts a reply
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+            format: uuid
+          required: true 
+          description: id of listing
+      requestBody:
+        description: reply to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/reply'
+      responses:
+        201:
+          description: Application Response
+        404:
+          description: id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /category/{category}:
+    get:
+      description: return all listings based on category
+      parameters:
+      - name: category
+        in: path
+        description: category of listing
+        required: true
+        schema: 
+          type: string
+      responses:
+        200:
+          description: successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingResponse'
+        404:
+          description: listings not found
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /subcategory/{category}:
+    get:
+      description: return all subcategories of a category
+      parameters:
+      - name: category
+        in: path
+        description: category of listing
+        required: true
+        schema: 
+          type: string
+      responses:
+        200:
+          description: successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subcategories'
+        404:
+          description: listings not found
+        default:
+          description: Unexpected Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /sign-up:
+    post:
+      description: Create a user account
+      requestBody:
+        description: User object
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/createUserAccount'
+      responses:
+        201:
+          description: Application Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userResponse'
+        404:
+          description: id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        409:
+          description: conflict
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /private/user:
+    get:
+      security:
+        - bearerAuth: []   
+      description: A private endpoint to return a connected user data
+      responses:
+        200:
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/privateUserResponse'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+    Subcategories:
+      type: array
+      items:
+        type: string
+        
+    DummyResponse:
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    
+    ListingResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/listing'
+    
+    listing:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        price:
+          type: string
+        image:
+          type: string
+    
+    fullListing:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        price:
+          type: string
+        date:
+          type: string
+        image:
+          type: string
+        replies:
+          type: array
+          items:
+            type: object
+            properties:
+              user: 
+                type: string
+              reply:
+                type: string
+        
+    fullListingFoo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        price:
+          type: string
+        date:
+          type: object
+        image:
+          type: string
+        fullName:
+          type: string
+        replies:
+          type: array
+          items:
+            type: object
+            properties:
+              user: 
+                type: string
+              reply:
+                type: string
+
+    newListing:
+      type: object
+      properties:
+        title:
+          type: string
+        price:
+          type: string
+        description:
+          type: string
+        image:
+          type: string
+
+    reply:
+      type: object
+      properties:
+        reply: 
+          type: string
+
+    privateUserResponse:
+      properties:
+        fullName:
+          type: string
+      required:
+        - fullName
+    createUserAccount:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        confirmPassword:
+          type: string
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+        - confirmPassword
+    userResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            firstName:
+              type: string
+            lastName:
+              type: string
+            id:
+              type: string
+          required:
+            - firstName
+            - lastName
+            - id
+        accessToken:
+          type: string
+      required:
+        - user
+        - accessToken
+
+                
+        
+
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+     
+
